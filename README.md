@@ -1,2 +1,2 @@
-# COMP2101
-A repository including my scripts for the COMP2101 Administrative Scripting course
+# COMP2101 - PowerShell
+A branch containing PowerShell scripts for the COMP2101 course
