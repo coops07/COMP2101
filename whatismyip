@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Variables
+
+IP=$(curl icanhazip.com)
+
+# This script shows what your external IP is
+
+echo "Your IP address that everyone sees is $IP"
