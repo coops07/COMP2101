@@ -1,0 +1,5 @@
+#!/bin/bash
+# This script hello world in a more complicated way
+# This was written by myself
+
+echo -n "helb wold" |sed -e "s/b/o/g" -e "s/l/ll/" -e "s/ol/orl/" |tr "h" "H"|tr "w" "W"
