@@ -2,7 +2,7 @@
 
 # Variables
 
-IP=$(curl icanhazip.com)
+IP=$(curl -s icanhazip.com)
 
 # This script shows what your external IP is
 
