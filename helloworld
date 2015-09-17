@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# This script prints out "Hello World". It was written by Kyle Warwick-Mathieu
+
+echo "Hello World"
