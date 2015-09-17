@@ -1,0 +1,8 @@
+#!/bin/bash
+# Original code by Dennis Simpson
+# Edited by Kyle Warwick-Mathieu
+mkdir $HOME/mydata
+cp /etc/hosts $HOME/mydata
+cp /etc/resolv.conf $HOME/mydata
+touch $HOME/mydata/emptyfile
+ln -s hosts $HOME/mydata/mylinkedhostsfile
