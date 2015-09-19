@@ -1,0 +1,11 @@
+#!/bin/bash
+
+DIRECTORY=""
+# The following script will show all files in a directory of the user's choosing - the setuid and setgid files and 
+# sorts setuid files by the user and setgid by the group
+read -p "Directory - to show all setuid files and setgid files: " DIRECTORY
+echo "Here are all the files in $DIRECTORY with setuid permissions"
+find $DIRECTORY -perm /4000 -ls | sort -k 3
+echo
+echo "...and here are the files with setgid"
+find $DIRECTORY -perm /2000 -ls | sort -k 4
