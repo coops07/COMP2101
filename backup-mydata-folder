@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# This script will backup your "mydata" folder to a TAR archive
+
+if [ -d "$HOME/mydata/" ] ; then
+	echo "Backing up...."
+	tar -cvpzf /$HOME/mydatabackup.tar.gz /$HOME/mydata/
+	if [ $? != "0" ] ; then
+		echo "Backup failed!"
+		exit 1
+	else
+		echo "Backup completed!"
+	fi
+else
+	echo "Aborting - directory not found"
+fi
