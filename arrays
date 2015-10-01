@@ -1,0 +1,14 @@
+#!/bin/bash
+
+colors=(red green blue)
+declare -A animals
+animals=([red]="cardinal" [green]="frog" [blue]="lobster")
+
+
+echo "${colors[0]}"
+echo "${colors[1]}"
+echo "${colors[2]}"
+echo
+echo
+echo
+echo "${colors[@]} ${animals[@]}"

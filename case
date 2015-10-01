@@ -1,0 +1,16 @@
+#!/bin/bash
+# A simple script to demonstrate the case commands
+while [ "$1" != "" ] ; do
+
+case $1 in
+	-h )
+	echo "You gave me the -h option"
+	;;
+	-d )
+	echo "You gave me the -d option"
+	;;
+	* )
+	echo "I dont recognize that"
+	exit 1
+esac
+done
