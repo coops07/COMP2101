@@ -1,0 +1,13 @@
+#!/bin/bash
+# This script asks the user for 2 numbers
+# and does the 5 basic opperations on those numbers
+num1=
+num2=
+read -p "Enter a number: " num1
+read -p "Enter a 2nd number: " num2
+
+echo "$num1 + $num2 = $((num1 + num2))"
+echo "$num1 - $num2 = $((num1 - num2))"
+echo "$num1 X $num2 = $((num1 * num2))"
+echo "$num1 / $num2 = $((num1 / num2))"
+echo "$num1 % $num2 = $((num1 % num2))"
