@@ -1,0 +1,225 @@
+#!/bin/bash
+# functions
+# We must make sure the user presses the enter key
+function pressenter {
+read -p "Press ENTER to continue or press CTRL+X to break. : " pressenter_key
+}
+
+# Check to see if the machine has internet access
+function net_check {
+ping google.com -c 4 >/dev/null
+if [ $? != "0" ] ; then
+	echo "ERROR! No internet connection detected!"
+	echo "PING to Google failed!"
+	echo "Please make sure you have a connection to the internet and ty agian."
+	exit 1
+fi
+}
+
+# We must check/install bind9 if it is not already installed.
+function bind_pkg_check {
+dpkg -L bind9 >/dev/null
+if [ $? != "0" ] ; then
+	echo "Bind not installed!"
+	echo "We will now install bind."
+	sleep 2s
+	echo "Updating repos...."
+	apt-get update
+	echo "Installing bind...."
+	apt-get install bind9 dnsutils -y
+fi
+}
+function domain_setup {
+# Original code by Dennis Simpson
+# Edited by Kyle Warwick-Mathieu
+if [ ! -e /etc/bind/db.$domain ]; then
+	echo "Setting up zones for $domain"
+	cat > /etc/bind/db.$domain <<EOF
+;
+; Data file for $domain
+;
+\$TTL	604800
+@	IN	SOA	ns1.$domain. hostmaster.$domain. (
+		     2015010100		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	ns1
+ns1	IN	A	$ns1_ip
+;
+www	IN	A	$www_ip
+mail	IN	A	192.168.5.20
+EOF
+	cat > /etc/bind/db.${ns1_ip_cidr} <<EOF
+;
+; ${ns1_ip_cidr}/24
+;
+\$TTL	604800
+@	IN	SOA	ns1.$domain. hostmaster.$domain. (
+		     2015010100		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	ns1.$domain.
+20	IN	PTR	ns1.$domain.
+EOF
+	cat > /etc/bind/db.${www_ip_cidr} <<EOF
+;
+; ${www__ip_cidr}/24
+;
+\$TTL	604800
+@	IN	SOA	ns1.$domain. hostmaster.$domain. (
+		     2015010100		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	ns1.$domain.
+20	IN	PTR	www.$domain.
+EOF
+	cat > /etc/bind/db.${mail_ip_cidr} <<EOF
+;
+; ${mail_ip_cidr}/24
+;
+\$TTL	604800
+@	IN	SOA	ns1.$domain. hostmaster.$domain. (
+		     2015010100		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	ns1.$domain.
+20	IN	PTR	mail.$domain.
+EOF
+	cat >>/etc/bind/named.conf.local <<EOF
+
+zone "$domain" {
+	type master;
+	file "/etc/bind/db.$domain";
+};
+zone "${ns1_ip_rev}.in-addr.arpa" {
+	type master;
+	file "/etc/bind/db.${ns1_ip_cidr}";
+};
+zone "${www_ip_rev}.in-addr.arpa" {
+	type master;
+	file "/etc/bind/db.${www_ip_cidr}";
+};
+zone "${mail_ip_rev}.in-addr.arpa" {
+	type master;
+	file "/etc/bind/db.${mail_ip_cidr}";
+};
+EOF
+	rndc reload
+	echo " - done"
+fi
+}
+
+function dns_check {
+# Function to check if your newly created DNS domains are reachable
+nslookup $domain localhost >/dev/null
+if [ $? != "0" ] ; then
+	echo "$domain is not reachable via DNS"
+else
+	echo "$domain is reachable via localhost"
+fi
+nslookup ns1.$domain localhost >/dev/null
+if [ $? != "0" ] ; then
+        echo "ns1.$domain is not reachable via DNS"
+else
+	echo "ns1.$domain is reachable via localhost"
+fi
+nslookup www.$domain localhost >/dev/null
+if [ $? != "0" ] ; then
+        echo "www.$domain is not reachable via DNS"
+else
+	echo "www.$domain is reachable via localhost"
+fi
+nslookup mail.$domain localhost >/dev/null
+if [ $? != "0" ] ; then
+        echo "mail.$domain is not reachable via DNS"
+else
+	echo "mail.$domain is reachable via localhost"
+fi
+}
+#vars
+
+pressenter_key="" # A placeholder for the press enter function
+PROGNAME="$(basename $0)" # This variable is for referencing the name of the script if needed
+domain="" # This variable is used when the user specifies their domain they wish to set up
+ns1_ip="127.0.0.1" # IP for NS1
+ns1_ip_cidr="127.0.0" # IP for NS1 in network ID format
+ns1_ip_rev="0.0.127" # Used when creating arpa files
+www_ip="192.168.47.91" # IP for WWW
+www_ip_cidr="192.168.47" # IP for WWW in network ID format
+www_ip_rev="47.168.192" # Used when creating arpa files
+mail_ip="192.168.59.5" # IP for mail
+mail_ip_cidr="192.168.59" # IP for mail in network ID format
+mail_ip_rev="59.168.192" # Used when creating arpa files
+
+
+### Main ###
+# This script is for the first assignment and is for creating DNS zones
+echo "Welcome to my Assignment 1 script!"
+echo
+echo "This script will help you create DNS zones and domains."
+pressenter
+# First we must make sure the user presses enter before we can continue
+# If the user hasn't pressed ENTER (no empty string) we must recall the function.
+
+until [ "$pressenter_key" = "" ] ; do
+	echo "What did I say??"
+	pressenter
+done
+# In order for this script to run effectivly, we must make sure this user is root
+# The root ID is always 0
+until [ "$UID" = "0" ] ; do
+	echo "In order to run this script your user ID must be 0 (root)"
+	echo "Please type:"
+	echo "sudo $PROGNAME"
+	exit 1
+done
+# Make sure user is connected to the internet
+net_check
+# We must run the package check
+bind_pkg_check
+echo "From this point on, you will be asked to specify the domain name"
+read -p "Please enter the domain name you wish to use: " domain
+if [ -z $domain ] ; then
+	echo "You can't put nothing for a domain!"
+	exit 1
+fi
+echo "Checking if $domain exists already...."
+nslookup $domain localhost >/dev/null
+if [ $? == "0" ] ; then
+	echo "$domain already exists!"
+	exit 1
+else
+	echo "#### SUMMARY ####"
+	echo "You've chosen the domain: $domain"
+	echo "The IP address for ns1.$domain is $ns1_ip. Its network ID is $ns1_ip_cidr."
+	echo "The arpa IP for ns1.$domain is $ns1_ip_rev."
+	echo "The IP address for www.$domain is $www_ip. Its network ID is $www_ip_cidr."
+	echo "The arpa IP for www.$domain is $www_ip_rev."
+	echo "The IP address for mail.$domain is $mail_ip. Its network ID is $mail_ip_cidr."
+	echo "The arpa IP for mail.$domain is $mail_ip_rev."
+	read -p "Are these settings correct? [y/n]" confirm
+	if [ $confirm == "y" ] ; then
+		echo "Okay let's create the zones and files needed!"
+		domain_setup
+		echo "Running check to see if our domains are reachable...."
+		dns_check
+	elif [ $confirm == "n" ] ; then
+		echo "Please come back later"
+		exit 0
+	else
+		echo "You didn't say yes or no"
+		exit 1
+	fi
+fi
