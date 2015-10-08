@@ -13,4 +13,5 @@ case $1 in
 	echo "I dont recognize that"
 	exit 1
 esac
+shift
 done
